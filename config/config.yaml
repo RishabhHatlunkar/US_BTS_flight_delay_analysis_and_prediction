@@ -1,0 +1,97 @@
+# ==============================================================================
+# Flight Delay Analytics and Prediction — Pipeline Configuration
+# Stage 1: BTS Data Ingestion Configuration
+# ==============================================================================
+
+bts:
+  source_name: "U.S. Bureau of Transportation Statistics (BTS)"
+  dataset_name: "Reporting Carrier On-Time Performance (1987-present)"
+  table_id: 236
+  table_name: "T_ONTIME_REPORTING"
+  portal_url: "https://www.transtats.bts.gov/"
+  form_url: "https://www.transtats.bts.gov/DL_SelectFields.aspx?gnoyr_VQ=FGJ&QO_fu146_anzr=b0-gvzr"
+
+ingestion:
+  years:
+    - 2024
+    - 2025
+  # Months to retrieve for each year (1-12). If null or empty, all 12 months are attempted.
+  months: null
+  download_all_fields: true
+  output_dir: "data/raw/bts"
+  output_filename_pattern: "bts_flights_{year}.csv"
+  metadata_file: "data/raw/bts/metadata.json"
+  overwrite: false
+  request_timeout: 120
+  retry_count: 3
+  retry_backoff_seconds: 5
+  chunk_size_bytes: 262144  # 256 KB chunks for streaming
+
+logging:
+  log_file: "logs/bts_download.log"
+  log_level: "INFO"
+  console_output: true
+
+# Required analytical fields expected in the raw dataset schema
+required_fields:
+  time:
+    - "Year"
+    - "Quarter"
+    - "Month"
+    - "DayofMonth"
+    - "DayOfWeek"
+    - "FlightDate"
+  airline:
+    - "Reporting_Airline"
+    - "DOT_ID_Reporting_Airline"
+    - "IATA_CODE_Reporting_Airline"
+    - "Flight_Number_Reporting_Airline"
+    - "Tail_Number"
+  origin:
+    - "OriginAirportID"
+    - "OriginAirportSeqID"
+    - "Origin"
+    - "OriginCityName"
+    - "OriginState"
+    - "OriginStateName"
+  destination:
+    - "DestAirportID"
+    - "DestAirportSeqID"
+    - "Dest"
+    - "DestCityName"
+    - "DestState"
+    - "DestStateName"
+  departure:
+    - "CRSDepTime"
+    - "DepTime"
+    - "DepDelay"
+    - "DepDelayMinutes"
+    - "DepDel15"
+    - "DepartureDelayGroups"
+    - "DepTimeBlk"
+    - "TaxiOut"
+  arrival:
+    - "CRSArrTime"
+    - "ArrTime"
+    - "ArrDelay"
+    - "ArrDelayMinutes"
+    - "ArrDel15"
+    - "ArrivalDelayGroups"
+    - "ArrTimeBlk"
+    - "TaxiIn"
+  cancellation:
+    - "Cancelled"
+    - "CancellationCode"
+    - "Diverted"
+  flight:
+    - "CRSElapsedTime"
+    - "ActualElapsedTime"
+    - "AirTime"
+    - "Distance"
+    - "DistanceGroup"
+  delay_causes:
+    - "CarrierDelay"
+    - "WeatherDelay"
+    - "NASDelay"
+    - "SecurityDelay"
+    - "LateAircraftDelay"
