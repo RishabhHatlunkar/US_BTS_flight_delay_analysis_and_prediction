@@ -1,6 +1,7 @@
 # ==============================================================================
-# Flight Delay Analytics and Prediction — Pipeline Configuration
+# Flight Delay Analytics and Prediction - Pipeline Configuration
 # Stage 1: BTS Data Ingestion Configuration
+# Stage 2: Databricks Bronze & Silver ETL Configuration
 # ==============================================================================
 
 bts:
@@ -15,7 +16,6 @@ ingestion:
   years:
     - 2024
     - 2025
-  # Months to retrieve for each year (1-12). If null or empty, all 12 months are attempted.
   months: null
   download_all_fields: true
   output_dir: "data/raw/bts"
@@ -25,14 +25,38 @@ ingestion:
   request_timeout: 120
   retry_count: 3
   retry_backoff_seconds: 5
-  chunk_size_bytes: 262144  # 256 KB chunks for streaming
+  chunk_size_bytes: 262144
+
+stage2:
+  databricks:
+    catalog: "flight_delay_dwm"
+    schemas:
+      bronze: "bronze"
+      silver: "silver"
+      metadata: "metadata"
+    volume: "raw_bts"
+    volume_path: "/Volumes/flight_delay_dwm/bronze/raw_bts"
+  
+  bronze:
+    table: "bts_flights"
+    full_table_name: "flight_delay_dwm.bronze.bts_flights"
+    
+  silver:
+    table: "flights"
+    full_table_name: "flight_delay_dwm.silver.flights"
+    
+  metadata:
+    table: "etl_run_log"
+    full_table_name: "flight_delay_dwm.metadata.etl_run_log"
+    
+  reports:
+    output_dir: "reports/stage2"
 
 logging:
-  log_file: "logs/bts_download.log"
+  log_file: "logs/stage2_etl.log"
   log_level: "INFO"
   console_output: true
 
-# Required analytical fields expected in the raw dataset schema
 required_fields:
   time:
     - "Year"
