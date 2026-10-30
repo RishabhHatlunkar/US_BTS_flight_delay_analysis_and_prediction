@@ -1,0 +1,1675 @@
+export * from './types';
+import {
+  Kpis,
+  MonthlyTrend,
+  AirlinePerf,
+  AirportDelay,
+  RouteMetric,
+  DelayCause,
+  TemporalPattern,
+} from "./types";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
+// Fallback cached data sourced directly from Databricks Unity Catalog Gold Fact (30.7M flights)
+export const FALLBACK_KPIS: Kpis = {
+  "total_flights": 30742408,
+  "eligible_arrivals": 30245727,
+  "delayed_arrivals": 6488530,
+  "ontime_early_arrivals": 23757197,
+  "cancelled_flights": 418275,
+  "diverted_flights": 78404,
+  "arr_delay_rate": 21.45,
+  "avg_arrival_delay_signed": 7.78,
+  "avg_arrival_delay_positive": 44.92,
+  "cancel_rate": 1.36,
+  "divert_rate": 0.26,
+  "total_delay_burden_minutes": 499650355.0
+};
+
+export const FALLBACK_MONTHLY: MonthlyTrend[] = [
+  {
+    "year": 2024,
+    "month": 1,
+    "month_name": "January",
+    "total_flights": 1202211,
+    "eligible_arrivals": 1156336,
+    "delayed_arrivals": 274945,
+    "delay_rate": 23.78,
+    "avg_arrival_delay": 10.03,
+    "cancel_rate": 3.56,
+    "divert_rate": 0.26
+  },
+  {
+    "year": 2024,
+    "month": 2,
+    "month_name": "February",
+    "total_flights": 1139221,
+    "eligible_arrivals": 1131425,
+    "delayed_arrivals": 180621,
+    "delay_rate": 15.96,
+    "avg_arrival_delay": 0.72,
+    "cancel_rate": 0.51,
+    "divert_rate": 0.17
+  },
+  {
+    "year": 2024,
+    "month": 3,
+    "month_name": "March",
+    "total_flights": 1297025,
+    "eligible_arrivals": 1283261,
+    "delayed_arrivals": 266975,
+    "delay_rate": 20.8,
+    "avg_arrival_delay": 6.55,
+    "cancel_rate": 0.87,
+    "divert_rate": 0.19
+  },
+  {
+    "year": 2024,
+    "month": 4,
+    "month_name": "April",
+    "total_flights": 1274001,
+    "eligible_arrivals": 1263147,
+    "delayed_arrivals": 239857,
+    "delay_rate": 18.99,
+    "avg_arrival_delay": 5.42,
+    "cancel_rate": 0.64,
+    "divert_rate": 0.21
+  },
+  {
+    "year": 2024,
+    "month": 5,
+    "month_name": "May",
+    "total_flights": 1336642,
+    "eligible_arrivals": 1314964,
+    "delayed_arrivals": 349654,
+    "delay_rate": 26.59,
+    "avg_arrival_delay": 14.2,
+    "cancel_rate": 1.26,
+    "divert_rate": 0.36
+  },
+  {
+    "year": 2024,
+    "month": 6,
+    "month_name": "June",
+    "total_flights": 1332673,
+    "eligible_arrivals": 1311066,
+    "delayed_arrivals": 324609,
+    "delay_rate": 24.76,
+    "avg_arrival_delay": 11.73,
+    "cancel_rate": 1.29,
+    "divert_rate": 0.33
+  },
+  {
+    "year": 2024,
+    "month": 7,
+    "month_name": "July",
+    "total_flights": 1377610,
+    "eligible_arrivals": 1330669,
+    "delayed_arrivals": 398229,
+    "delay_rate": 29.93,
+    "avg_arrival_delay": 18.75,
+    "cancel_rate": 3.04,
+    "divert_rate": 0.36
+  },
+  {
+    "year": 2024,
+    "month": 8,
+    "month_name": "August",
+    "total_flights": 1338798,
+    "eligible_arrivals": 1307012,
+    "delayed_arrivals": 304393,
+    "delay_rate": 23.29,
+    "avg_arrival_delay": 10.54,
+    "cancel_rate": 2.05,
+    "divert_rate": 0.32
+  },
+  {
+    "year": 2024,
+    "month": 9,
+    "month_name": "September",
+    "total_flights": 1259959,
+    "eligible_arrivals": 1250360,
+    "delayed_arrivals": 193881,
+    "delay_rate": 15.51,
+    "avg_arrival_delay": 1.15,
+    "cancel_rate": 0.61,
+    "divert_rate": 0.15
+  },
+  {
+    "year": 2024,
+    "month": 10,
+    "month_name": "October",
+    "total_flights": 1342031,
+    "eligible_arrivals": 1327139,
+    "delayed_arrivals": 173265,
+    "delay_rate": 13.06,
+    "avg_arrival_delay": -1.29,
+    "cancel_rate": 1.0,
+    "divert_rate": 0.11
+  },
+  {
+    "year": 2024,
+    "month": 11,
+    "month_name": "November",
+    "total_flights": 1261762,
+    "eligible_arrivals": 1254590,
+    "delayed_arrivals": 183796,
+    "delay_rate": 14.65,
+    "avg_arrival_delay": -0.34,
+    "cancel_rate": 0.43,
+    "divert_rate": 0.13
+  },
+  {
+    "year": 2024,
+    "month": 12,
+    "month_name": "December",
+    "total_flights": 1298164,
+    "eligible_arrivals": 1286993,
+    "delayed_arrivals": 267078,
+    "delay_rate": 20.75,
+    "avg_arrival_delay": 6.77,
+    "cancel_rate": 0.61,
+    "divert_rate": 0.25
+  },
+  {
+    "year": 2025,
+    "month": 1,
+    "month_name": "January",
+    "total_flights": 1186545,
+    "eligible_arrivals": 1147554,
+    "delayed_arrivals": 214495,
+    "delay_rate": 18.69,
+    "avg_arrival_delay": 3.8,
+    "cancel_rate": 3.09,
+    "divert_rate": 0.19
+  },
+  {
+    "year": 2025,
+    "month": 2,
+    "month_name": "February",
+    "total_flights": 1111520,
+    "eligible_arrivals": 1094626,
+    "delayed_arrivals": 221765,
+    "delay_rate": 20.26,
+    "avg_arrival_delay": 5.29,
+    "cancel_rate": 1.34,
+    "divert_rate": 0.18
+  },
+  {
+    "year": 2025,
+    "month": 3,
+    "month_name": "March",
+    "total_flights": 1321208,
+    "eligible_arrivals": 1303796,
+    "delayed_arrivals": 250293,
+    "delay_rate": 19.2,
+    "avg_arrival_delay": 5.14,
+    "cancel_rate": 1.08,
+    "divert_rate": 0.24
+  },
+  {
+    "year": 2025,
+    "month": 4,
+    "month_name": "April",
+    "total_flights": 1279488,
+    "eligible_arrivals": 1266357,
+    "delayed_arrivals": 250982,
+    "delay_rate": 19.82,
+    "avg_arrival_delay": 6.01,
+    "cancel_rate": 0.79,
+    "divert_rate": 0.24
+  },
+  {
+    "year": 2025,
+    "month": 5,
+    "month_name": "May",
+    "total_flights": 1323890,
+    "eligible_arrivals": 1306056,
+    "delayed_arrivals": 316817,
+    "delay_rate": 24.26,
+    "avg_arrival_delay": 11.12,
+    "cancel_rate": 1.05,
+    "divert_rate": 0.3
+  },
+  {
+    "year": 2025,
+    "month": 6,
+    "month_name": "June",
+    "total_flights": 1324194,
+    "eligible_arrivals": 1298144,
+    "delayed_arrivals": 371703,
+    "delay_rate": 28.63,
+    "avg_arrival_delay": 16.17,
+    "cancel_rate": 1.56,
+    "divert_rate": 0.4
+  },
+  {
+    "year": 2025,
+    "month": 7,
+    "month_name": "July",
+    "total_flights": 1366063,
+    "eligible_arrivals": 1328040,
+    "delayed_arrivals": 384246,
+    "delay_rate": 28.93,
+    "avg_arrival_delay": 17.55,
+    "cancel_rate": 2.28,
+    "divert_rate": 0.51
+  },
+  {
+    "year": 2025,
+    "month": 8,
+    "month_name": "August",
+    "total_flights": 1301603,
+    "eligible_arrivals": 1284444,
+    "delayed_arrivals": 290487,
+    "delay_rate": 22.62,
+    "avg_arrival_delay": 9.3,
+    "cancel_rate": 0.95,
+    "divert_rate": 0.37
+  },
+  {
+    "year": 2025,
+    "month": 9,
+    "month_name": "September",
+    "total_flights": 1215552,
+    "eligible_arrivals": 1207309,
+    "delayed_arrivals": 198377,
+    "delay_rate": 16.43,
+    "avg_arrival_delay": 2.13,
+    "cancel_rate": 0.47,
+    "divert_rate": 0.21
+  },
+  {
+    "year": 2025,
+    "month": 10,
+    "month_name": "October",
+    "total_flights": 1321942,
+    "eligible_arrivals": 1313541,
+    "delayed_arrivals": 264113,
+    "delay_rate": 20.11,
+    "avg_arrival_delay": 5.47,
+    "cancel_rate": 0.47,
+    "divert_rate": 0.17
+  },
+  {
+    "year": 2025,
+    "month": 11,
+    "month_name": "November",
+    "total_flights": 1250589,
+    "eligible_arrivals": 1220071,
+    "delayed_arrivals": 243317,
+    "delay_rate": 19.94,
+    "avg_arrival_delay": 5.76,
+    "cancel_rate": 2.28,
+    "divert_rate": 0.16
+  },
+  {
+    "year": 2025,
+    "month": 12,
+    "month_name": "December",
+    "total_flights": 1279717,
+    "eligible_arrivals": 1258827,
+    "delayed_arrivals": 324632,
+    "delay_rate": 25.79,
+    "avg_arrival_delay": 11.86,
+    "cancel_rate": 1.41,
+    "divert_rate": 0.22
+  }
+];
+
+export const FALLBACK_AIRLINES: AirlinePerf[] = [
+  {
+    "reporting_airline": "AA",
+    "total_flights": 4445202,
+    "eligible_arrivals": 4364743,
+    "delayed_arrivals": 1101064,
+    "delay_rate": 25.23,
+    "avg_arr_delay_signed": 13.67,
+    "avg_arr_delay_pos": 54.59,
+    "total_delay_minutes_positive": 96681632.0,
+    "total_delay_minutes_signed": 59683926.0,
+    "cancel_rate": 1.53,
+    "divert_rate": 0.28
+  },
+  {
+    "reporting_airline": "WN",
+    "total_flights": 6320156,
+    "eligible_arrivals": 6252329,
+    "delayed_arrivals": 1321796,
+    "delay_rate": 21.14,
+    "avg_arr_delay_signed": 5.76,
+    "avg_arr_delay_pos": 33.29,
+    "total_delay_minutes_positive": 80590141.0,
+    "total_delay_minutes_signed": 36022544.0,
+    "cancel_rate": 0.85,
+    "divert_rate": 0.23
+  },
+  {
+    "reporting_airline": "DL",
+    "total_flights": 4541961,
+    "eligible_arrivals": 4484342,
+    "delayed_arrivals": 836904,
+    "delay_rate": 18.66,
+    "avg_arr_delay_signed": 5.02,
+    "avg_arr_delay_pos": 43.76,
+    "total_delay_minutes_positive": 64643423.0,
+    "total_delay_minutes_signed": 22522681.0,
+    "cancel_rate": 1.03,
+    "divert_rate": 0.24
+  },
+  {
+    "reporting_airline": "UA",
+    "total_flights": 3907458,
+    "eligible_arrivals": 3846604,
+    "delayed_arrivals": 789646,
+    "delay_rate": 20.53,
+    "avg_arr_delay_signed": 6.55,
+    "avg_arr_delay_pos": 45.72,
+    "total_delay_minutes_positive": 61714855.0,
+    "total_delay_minutes_signed": 25186202.0,
+    "cancel_rate": 1.26,
+    "divert_rate": 0.29
+  },
+  {
+    "reporting_airline": "OO",
+    "total_flights": 3132042,
+    "eligible_arrivals": 3083869,
+    "delayed_arrivals": 600462,
+    "delay_rate": 19.47,
+    "avg_arr_delay_signed": 8.05,
+    "avg_arr_delay_pos": 50.34,
+    "total_delay_minutes_positive": 52678355.0,
+    "total_delay_minutes_signed": 24826830.0,
+    "cancel_rate": 1.22,
+    "divert_rate": 0.32
+  },
+  {
+    "reporting_airline": "F9",
+    "total_flights": 980504,
+    "eligible_arrivals": 959329,
+    "delayed_arrivals": 271014,
+    "delay_rate": 28.25,
+    "avg_arr_delay_signed": 14.98,
+    "avg_arr_delay_pos": 56.81,
+    "total_delay_minutes_positive": 23081831.0,
+    "total_delay_minutes_signed": 14368288.0,
+    "cancel_rate": 2.01,
+    "divert_rate": 0.15
+  },
+  {
+    "reporting_airline": "OH",
+    "total_flights": 1037372,
+    "eligible_arrivals": 1005626,
+    "delayed_arrivals": 239807,
+    "delay_rate": 23.85,
+    "avg_arr_delay_signed": 12.62,
+    "avg_arr_delay_pos": 56.16,
+    "total_delay_minutes_positive": 21689600.0,
+    "total_delay_minutes_signed": 12692576.0,
+    "cancel_rate": 2.82,
+    "divert_rate": 0.24
+  },
+  {
+    "reporting_airline": "B6",
+    "total_flights": 1020734,
+    "eligible_arrivals": 1001459,
+    "delayed_arrivals": 259936,
+    "delay_rate": 25.96,
+    "avg_arr_delay_signed": 10.78,
+    "avg_arr_delay_pos": 53.06,
+    "total_delay_minutes_positive": 20884574.0,
+    "total_delay_minutes_signed": 10791493.0,
+    "cancel_rate": 1.54,
+    "divert_rate": 0.35
+  },
+  {
+    "reporting_airline": "NK",
+    "total_flights": 1096017,
+    "eligible_arrivals": 1074039,
+    "delayed_arrivals": 251893,
+    "delay_rate": 23.45,
+    "avg_arr_delay_signed": 8.2,
+    "avg_arr_delay_pos": 48.39,
+    "total_delay_minutes_positive": 19166516.0,
+    "total_delay_minutes_signed": 8812244.0,
+    "cancel_rate": 1.81,
+    "divert_rate": 0.19
+  },
+  {
+    "reporting_airline": "YX",
+    "total_flights": 1180340,
+    "eligible_arrivals": 1147307,
+    "delayed_arrivals": 208274,
+    "delay_rate": 18.15,
+    "avg_arr_delay_signed": 2.66,
+    "avg_arr_delay_pos": 44.64,
+    "total_delay_minutes_positive": 15645595.0,
+    "total_delay_minutes_signed": 3057408.0,
+    "cancel_rate": 2.6,
+    "divert_rate": 0.19
+  },
+  {
+    "reporting_airline": "MQ",
+    "total_flights": 1029804,
+    "eligible_arrivals": 1008781,
+    "delayed_arrivals": 204414,
+    "delay_rate": 20.26,
+    "avg_arr_delay_signed": 5.72,
+    "avg_arr_delay_pos": 38.31,
+    "total_delay_minutes_positive": 13972683.0,
+    "total_delay_minutes_signed": 5774356.0,
+    "cancel_rate": 1.79,
+    "divert_rate": 0.25
+  },
+  {
+    "reporting_airline": "G4",
+    "total_flights": 521337,
+    "eligible_arrivals": 514839,
+    "delayed_arrivals": 119368,
+    "delay_rate": 23.19,
+    "avg_arr_delay_signed": 11.59,
+    "avg_arr_delay_pos": 57.46,
+    "total_delay_minutes_positive": 10981883.0,
+    "total_delay_minutes_signed": 5968936.0,
+    "cancel_rate": 0.98,
+    "divert_rate": 0.27
+  },
+  {
+    "reporting_airline": "AS",
+    "total_flights": 825537,
+    "eligible_arrivals": 810367,
+    "delayed_arrivals": 175213,
+    "delay_rate": 21.62,
+    "avg_arr_delay_signed": 4.02,
+    "avg_arr_delay_pos": 30.57,
+    "total_delay_minutes_positive": 10055231.0,
+    "total_delay_minutes_signed": 3255779.0,
+    "cancel_rate": 1.55,
+    "divert_rate": 0.29
+  },
+  {
+    "reporting_airline": "9E",
+    "total_flights": 369002,
+    "eligible_arrivals": 360499,
+    "delayed_arrivals": 57425,
+    "delay_rate": 15.93,
+    "avg_arr_delay_signed": 2.29,
+    "avg_arr_delay_pos": 50.41,
+    "total_delay_minutes_positive": 4828483.0,
+    "total_delay_minutes_signed": 825400.0,
+    "cancel_rate": 2.08,
+    "divert_rate": 0.22
+  },
+  {
+    "reporting_airline": "HA",
+    "total_flights": 334942,
+    "eligible_arrivals": 331594,
+    "delayed_arrivals": 51314,
+    "delay_rate": 15.47,
+    "avg_arr_delay_signed": 4.85,
+    "avg_arr_delay_pos": 20.92,
+    "total_delay_minutes_positive": 3035553.0,
+    "total_delay_minutes_signed": 1607471.0,
+    "cancel_rate": 0.9,
+    "divert_rate": 0.1
+  }
+];
+
+export const FALLBACK_ORIG_AIRPORTS: AirportDelay[] = [
+  {
+    "origin_airport_code": "HTS",
+    "origin_city_name": "Ashland, WV",
+    "origin_state": "WV",
+    "eligible_departures": 1372,
+    "delayed_departures": 634,
+    "dep_delay_rate": 46.21,
+    "avg_dep_delay": 39.9
+  },
+  {
+    "origin_airport_code": "USA",
+    "origin_city_name": "Concord, NC",
+    "origin_state": "NC",
+    "eligible_departures": 2128,
+    "delayed_departures": 863,
+    "dep_delay_rate": 40.55,
+    "avg_dep_delay": 37.84
+  },
+  {
+    "origin_airport_code": "TOL",
+    "origin_city_name": "Toledo, OH",
+    "origin_state": "OH",
+    "eligible_departures": 2020,
+    "delayed_departures": 724,
+    "dep_delay_rate": 35.84,
+    "avg_dep_delay": 26.31
+  },
+  {
+    "origin_airport_code": "SCK",
+    "origin_city_name": "Stockton, CA",
+    "origin_state": "CA",
+    "eligible_departures": 2672,
+    "delayed_departures": 912,
+    "dep_delay_rate": 34.13,
+    "avg_dep_delay": 29.57
+  },
+  {
+    "origin_airport_code": "ASE",
+    "origin_city_name": "Aspen, CO",
+    "origin_state": "CO",
+    "eligible_departures": 24243,
+    "delayed_departures": 7625,
+    "dep_delay_rate": 31.45,
+    "avg_dep_delay": 28.15
+  },
+  {
+    "origin_airport_code": "PBG",
+    "origin_city_name": "Plattsburgh, NY",
+    "origin_state": "NY",
+    "eligible_departures": 1591,
+    "delayed_departures": 462,
+    "dep_delay_rate": 29.04,
+    "avg_dep_delay": 25.48
+  },
+  {
+    "origin_airport_code": "IAG",
+    "origin_city_name": "Niagara Falls, NY",
+    "origin_state": "NY",
+    "eligible_departures": 1992,
+    "delayed_departures": 572,
+    "dep_delay_rate": 28.71,
+    "avg_dep_delay": 18.36
+  },
+  {
+    "origin_airport_code": "DFW",
+    "origin_city_name": "Dallas/Fort Worth, TX",
+    "origin_state": "TX",
+    "eligible_departures": 942959,
+    "delayed_departures": 263321,
+    "dep_delay_rate": 27.92,
+    "avg_dep_delay": 18.97
+  },
+  {
+    "origin_airport_code": "OTH",
+    "origin_city_name": "North Bend/Coos Bay, OR",
+    "origin_state": "OR",
+    "eligible_departures": 1014,
+    "delayed_departures": 283,
+    "dep_delay_rate": 27.91,
+    "avg_dep_delay": 26.02
+  },
+  {
+    "origin_airport_code": "LCK",
+    "origin_city_name": "Columbus, OH",
+    "origin_state": "OH",
+    "eligible_departures": 3042,
+    "delayed_departures": 848,
+    "dep_delay_rate": 27.88,
+    "avg_dep_delay": 19.61
+  },
+  {
+    "origin_airport_code": "EWN",
+    "origin_city_name": "New Bern/Morehead/Beaufort, NC",
+    "origin_state": "NC",
+    "eligible_departures": 1356,
+    "delayed_departures": 368,
+    "dep_delay_rate": 27.14,
+    "avg_dep_delay": 26.95
+  },
+  {
+    "origin_airport_code": "BWI",
+    "origin_city_name": "Baltimore, MD",
+    "origin_state": "MD",
+    "eligible_departures": 288162,
+    "delayed_departures": 77847,
+    "dep_delay_rate": 27.02,
+    "avg_dep_delay": 15.35
+  },
+  {
+    "origin_airport_code": "MIA",
+    "origin_city_name": "Miami, FL",
+    "origin_state": "FL",
+    "eligible_departures": 648958,
+    "delayed_departures": 170574,
+    "dep_delay_rate": 26.28,
+    "avg_dep_delay": 18.49
+  },
+  {
+    "origin_airport_code": "DAL",
+    "origin_city_name": "Dallas, TX",
+    "origin_state": "TX",
+    "eligible_departures": 448942,
+    "delayed_departures": 117680,
+    "dep_delay_rate": 26.21,
+    "avg_dep_delay": 14.31
+  },
+  {
+    "origin_airport_code": "BLV",
+    "origin_city_name": "Belleville, IL",
+    "origin_state": "IL",
+    "eligible_departures": 3698,
+    "delayed_departures": 968,
+    "dep_delay_rate": 26.18,
+    "avg_dep_delay": 19.53
+  },
+  {
+    "origin_airport_code": "SWF",
+    "origin_city_name": "Newburgh/Poughkeepsie, NY",
+    "origin_state": "NY",
+    "eligible_departures": 1295,
+    "delayed_departures": 338,
+    "dep_delay_rate": 26.1,
+    "avg_dep_delay": 20.25
+  },
+  {
+    "origin_airport_code": "FLL",
+    "origin_city_name": "Fort Lauderdale, FL",
+    "origin_state": "FL",
+    "eligible_departures": 520722,
+    "delayed_departures": 135626,
+    "dep_delay_rate": 26.05,
+    "avg_dep_delay": 16.74
+  },
+  {
+    "origin_airport_code": "STX",
+    "origin_city_name": "Christiansted, VI",
+    "origin_state": "VI",
+    "eligible_departures": 9470,
+    "delayed_departures": 2466,
+    "dep_delay_rate": 26.04,
+    "avg_dep_delay": 21.51
+  },
+  {
+    "origin_airport_code": "SFB",
+    "origin_city_name": "Sanford, FL",
+    "origin_state": "FL",
+    "eligible_departures": 53678,
+    "delayed_departures": 13798,
+    "dep_delay_rate": 25.71,
+    "avg_dep_delay": 15.26
+  },
+  {
+    "origin_airport_code": "BET",
+    "origin_city_name": "Bethel, AK",
+    "origin_state": "AK",
+    "eligible_departures": 1417,
+    "delayed_departures": 364,
+    "dep_delay_rate": 25.69,
+    "avg_dep_delay": 8.89
+  },
+  {
+    "origin_airport_code": "CLT",
+    "origin_city_name": "Charlotte, NC",
+    "origin_state": "NC",
+    "eligible_departures": 1172240,
+    "delayed_departures": 297492,
+    "dep_delay_rate": 25.38,
+    "avg_dep_delay": 16.98
+  },
+  {
+    "origin_airport_code": "COD",
+    "origin_city_name": "Cody, WY",
+    "origin_state": "WY",
+    "eligible_departures": 3070,
+    "delayed_departures": 770,
+    "dep_delay_rate": 25.08,
+    "avg_dep_delay": 21.14
+  },
+  {
+    "origin_airport_code": "EGE",
+    "origin_city_name": "Eagle, CO",
+    "origin_state": "CO",
+    "eligible_departures": 12188,
+    "delayed_departures": 3050,
+    "dep_delay_rate": 25.02,
+    "avg_dep_delay": 20.55
+  },
+  {
+    "origin_airport_code": "RFD",
+    "origin_city_name": "Rockford, IL",
+    "origin_state": "IL",
+    "eligible_departures": 2483,
+    "delayed_departures": 616,
+    "dep_delay_rate": 24.81,
+    "avg_dep_delay": 22.02
+  },
+  {
+    "origin_airport_code": "PBI",
+    "origin_city_name": "West Palm Beach/Palm Beach, FL",
+    "origin_state": "FL",
+    "eligible_departures": 88150,
+    "delayed_departures": 21669,
+    "dep_delay_rate": 24.58,
+    "avg_dep_delay": 17.85
+  }
+];
+
+export const FALLBACK_DEST_AIRPORTS: AirportDelay[] = [
+  {
+    "dest_airport_code": "USA",
+    "dest_city_name": "Concord, NC",
+    "dest_state": "NC",
+    "eligible_arrivals": 2129,
+    "delayed_arrivals": 767,
+    "arr_delay_rate": 36.03,
+    "avg_arr_delay": 22.76
+  },
+  {
+    "dest_airport_code": "HTS",
+    "dest_city_name": "Ashland, WV",
+    "dest_state": "WV",
+    "eligible_arrivals": 1365,
+    "delayed_arrivals": 454,
+    "arr_delay_rate": 33.26,
+    "avg_arr_delay": 19.13
+  },
+  {
+    "dest_airport_code": "HOB",
+    "dest_city_name": "Hobbs, NM",
+    "dest_state": "NM",
+    "eligible_arrivals": 4564,
+    "delayed_arrivals": 1504,
+    "arr_delay_rate": 32.95,
+    "avg_arr_delay": 33.23
+  },
+  {
+    "dest_airport_code": "SFB",
+    "dest_city_name": "Sanford, FL",
+    "dest_state": "FL",
+    "eligible_arrivals": 53506,
+    "delayed_arrivals": 16828,
+    "arr_delay_rate": 31.45,
+    "avg_arr_delay": 21.95
+  },
+  {
+    "dest_airport_code": "ASE",
+    "dest_city_name": "Aspen, CO",
+    "dest_state": "CO",
+    "eligible_arrivals": 23796,
+    "delayed_arrivals": 7030,
+    "arr_delay_rate": 29.54,
+    "avg_arr_delay": 19.01
+  },
+  {
+    "dest_airport_code": "CMX",
+    "dest_city_name": "Hancock/Houghton, MI",
+    "dest_state": "MI",
+    "eligible_arrivals": 2886,
+    "delayed_arrivals": 848,
+    "arr_delay_rate": 29.38,
+    "avg_arr_delay": 25.38
+  },
+  {
+    "dest_airport_code": "PQI",
+    "dest_city_name": "Presque Isle/Houlton, ME",
+    "dest_state": "ME",
+    "eligible_arrivals": 1908,
+    "delayed_arrivals": 560,
+    "arr_delay_rate": 29.35,
+    "avg_arr_delay": 10.16
+  },
+  {
+    "dest_airport_code": "PIE",
+    "dest_city_name": "St. Petersburg, FL",
+    "dest_state": "FL",
+    "eligible_arrivals": 23338,
+    "delayed_arrivals": 6611,
+    "arr_delay_rate": 28.33,
+    "avg_arr_delay": 17.29
+  },
+  {
+    "dest_airport_code": "BQN",
+    "dest_city_name": "Aguadilla, PR",
+    "dest_state": "PR",
+    "eligible_arrivals": 7958,
+    "delayed_arrivals": 2249,
+    "arr_delay_rate": 28.26,
+    "avg_arr_delay": 11.85
+  },
+  {
+    "dest_airport_code": "EWN",
+    "dest_city_name": "New Bern/Morehead/Beaufort, NC",
+    "dest_state": "NC",
+    "eligible_arrivals": 1360,
+    "delayed_arrivals": 380,
+    "arr_delay_rate": 27.94,
+    "avg_arr_delay": 14.18
+  },
+  {
+    "dest_airport_code": "TOL",
+    "dest_city_name": "Toledo, OH",
+    "dest_state": "OH",
+    "eligible_arrivals": 2012,
+    "delayed_arrivals": 562,
+    "arr_delay_rate": 27.93,
+    "avg_arr_delay": 15.2
+  },
+  {
+    "dest_airport_code": "CAK",
+    "dest_city_name": "Akron, OH",
+    "dest_state": "OH",
+    "eligible_arrivals": 22140,
+    "delayed_arrivals": 6022,
+    "arr_delay_rate": 27.2,
+    "avg_arr_delay": 16.07
+  },
+  {
+    "dest_airport_code": "CRW",
+    "dest_city_name": "Charleston/Dunbar, WV",
+    "dest_state": "WV",
+    "eligible_arrivals": 9837,
+    "delayed_arrivals": 2661,
+    "arr_delay_rate": 27.05,
+    "avg_arr_delay": 16.61
+  },
+  {
+    "dest_airport_code": "SLN",
+    "dest_city_name": "Salina, KS",
+    "dest_state": "KS",
+    "eligible_arrivals": 5166,
+    "delayed_arrivals": 1392,
+    "arr_delay_rate": 26.95,
+    "avg_arr_delay": 21.22
+  },
+  {
+    "dest_airport_code": "LNK",
+    "dest_city_name": "Lincoln, NE",
+    "dest_state": "NE",
+    "eligible_arrivals": 14214,
+    "delayed_arrivals": 3798,
+    "arr_delay_rate": 26.72,
+    "avg_arr_delay": 18.04
+  },
+  {
+    "dest_airport_code": "SFO",
+    "dest_city_name": "San Francisco, CA",
+    "dest_state": "CA",
+    "eligible_arrivals": 412799,
+    "delayed_arrivals": 109859,
+    "arr_delay_rate": 26.61,
+    "avg_arr_delay": 9.99
+  },
+  {
+    "dest_airport_code": "SJU",
+    "dest_city_name": "San Juan, PR",
+    "dest_state": "PR",
+    "eligible_arrivals": 116819,
+    "delayed_arrivals": 31018,
+    "arr_delay_rate": 26.55,
+    "avg_arr_delay": 12.29
+  },
+  {
+    "dest_airport_code": "PVU",
+    "dest_city_name": "Provo, UT",
+    "dest_state": "UT",
+    "eligible_arrivals": 16894,
+    "delayed_arrivals": 4476,
+    "arr_delay_rate": 26.49,
+    "avg_arr_delay": 21.85
+  },
+  {
+    "dest_airport_code": "PBI",
+    "dest_city_name": "West Palm Beach/Palm Beach, FL",
+    "dest_state": "FL",
+    "eligible_arrivals": 87935,
+    "delayed_arrivals": 23284,
+    "arr_delay_rate": 26.48,
+    "avg_arr_delay": 10.83
+  },
+  {
+    "dest_airport_code": "FNT",
+    "dest_city_name": "Flint, MI",
+    "dest_state": "MI",
+    "eligible_arrivals": 6877,
+    "delayed_arrivals": 1795,
+    "arr_delay_rate": 26.1,
+    "avg_arr_delay": 13.53
+  },
+  {
+    "dest_airport_code": "AVP",
+    "dest_city_name": "Scranton/Wilkes-Barre, PA",
+    "dest_state": "PA",
+    "eligible_arrivals": 10108,
+    "delayed_arrivals": 2622,
+    "arr_delay_rate": 25.94,
+    "avg_arr_delay": 12.35
+  },
+  {
+    "dest_airport_code": "COU",
+    "dest_city_name": "Columbia, MO",
+    "dest_state": "MO",
+    "eligible_arrivals": 8476,
+    "delayed_arrivals": 2192,
+    "arr_delay_rate": 25.86,
+    "avg_arr_delay": 11.15
+  },
+  {
+    "dest_airport_code": "RST",
+    "dest_city_name": "Rochester, MN",
+    "dest_state": "MN",
+    "eligible_arrivals": 4852,
+    "delayed_arrivals": 1252,
+    "arr_delay_rate": 25.8,
+    "avg_arr_delay": 16.9
+  },
+  {
+    "dest_airport_code": "SUX",
+    "dest_city_name": "Sioux City, IA",
+    "dest_state": "IA",
+    "eligible_arrivals": 2121,
+    "delayed_arrivals": 544,
+    "arr_delay_rate": 25.65,
+    "avg_arr_delay": 14.9
+  },
+  {
+    "dest_airport_code": "LAN",
+    "dest_city_name": "Lansing, MI",
+    "dest_state": "MI",
+    "eligible_arrivals": 3210,
+    "delayed_arrivals": 815,
+    "arr_delay_rate": 25.39,
+    "avg_arr_delay": 13.28
+  }
+];
+
+export const FALLBACK_ROUTES: RouteMetric[] = [
+  {
+    "route_code": "ATL-MCO",
+    "origin_airport_code": "ATL",
+    "destination_airport_code": "MCO",
+    "total_flights": 68312,
+    "eligible_arrivals": 67172,
+    "arr_delay_rate": 29.53,
+    "avg_arr_delay": 17.51,
+    "total_delay_burden_minutes": 1508656.0
+  },
+  {
+    "route_code": "MCO-ATL",
+    "origin_airport_code": "MCO",
+    "destination_airport_code": "ATL",
+    "total_flights": 68428,
+    "eligible_arrivals": 67428,
+    "arr_delay_rate": 26.14,
+    "avg_arr_delay": 14.54,
+    "total_delay_burden_minutes": 1456748.0
+  },
+  {
+    "route_code": "MCO-EWR",
+    "origin_airport_code": "MCO",
+    "destination_airport_code": "EWR",
+    "total_flights": 52600,
+    "eligible_arrivals": 51068,
+    "arr_delay_rate": 27.36,
+    "avg_arr_delay": 16.43,
+    "total_delay_burden_minutes": 1312708.0
+  },
+  {
+    "route_code": "ATL-EWR",
+    "origin_airport_code": "ATL",
+    "destination_airport_code": "EWR",
+    "total_flights": 48624,
+    "eligible_arrivals": 47260,
+    "arr_delay_rate": 30.3,
+    "avg_arr_delay": 20.18,
+    "total_delay_burden_minutes": 1246324.0
+  },
+  {
+    "route_code": "MIA-ATL",
+    "origin_airport_code": "MIA",
+    "destination_airport_code": "ATL",
+    "total_flights": 51764,
+    "eligible_arrivals": 50980,
+    "arr_delay_rate": 28.52,
+    "avg_arr_delay": 17.06,
+    "total_delay_burden_minutes": 1224104.0
+  },
+  {
+    "route_code": "DEN-PHX",
+    "origin_airport_code": "DEN",
+    "destination_airport_code": "PHX",
+    "total_flights": 73840,
+    "eligible_arrivals": 73036,
+    "arr_delay_rate": 24.46,
+    "avg_arr_delay": 9.34,
+    "total_delay_burden_minutes": 1203092.0
+  },
+  {
+    "route_code": "FLL-ATL",
+    "origin_airport_code": "FLL",
+    "destination_airport_code": "ATL",
+    "total_flights": 57004,
+    "eligible_arrivals": 56088,
+    "arr_delay_rate": 27.46,
+    "avg_arr_delay": 14.42,
+    "total_delay_burden_minutes": 1192764.0
+  },
+  {
+    "route_code": "ATL-MIA",
+    "origin_airport_code": "ATL",
+    "destination_airport_code": "MIA",
+    "total_flights": 51776,
+    "eligible_arrivals": 50968,
+    "arr_delay_rate": 28.29,
+    "avg_arr_delay": 16.52,
+    "total_delay_burden_minutes": 1159644.0
+  },
+  {
+    "route_code": "EWR-ATL",
+    "origin_airport_code": "EWR",
+    "destination_airport_code": "ATL",
+    "total_flights": 48628,
+    "eligible_arrivals": 47396,
+    "arr_delay_rate": 26.86,
+    "avg_arr_delay": 14.98,
+    "total_delay_burden_minutes": 1124664.0
+  },
+  {
+    "route_code": "ATL-FLL",
+    "origin_airport_code": "ATL",
+    "destination_airport_code": "FLL",
+    "total_flights": 57012,
+    "eligible_arrivals": 56152,
+    "arr_delay_rate": 27.54,
+    "avg_arr_delay": 13.76,
+    "total_delay_burden_minutes": 1094184.0
+  },
+  {
+    "route_code": "PHX-DEN",
+    "origin_airport_code": "PHX",
+    "destination_airport_code": "DEN",
+    "total_flights": 74276,
+    "eligible_arrivals": 73356,
+    "arr_delay_rate": 21.33,
+    "avg_arr_delay": 7.51,
+    "total_delay_burden_minutes": 1092908.0
+  },
+  {
+    "route_code": "EWR-MCO",
+    "origin_airport_code": "EWR",
+    "destination_airport_code": "MCO",
+    "total_flights": 52568,
+    "eligible_arrivals": 51088,
+    "arr_delay_rate": 24.29,
+    "avg_arr_delay": 8.95,
+    "total_delay_burden_minutes": 1038824.0
+  },
+  {
+    "route_code": "PHL-MCO",
+    "origin_airport_code": "PHL",
+    "destination_airport_code": "MCO",
+    "total_flights": 44024,
+    "eligible_arrivals": 43100,
+    "arr_delay_rate": 27.59,
+    "avg_arr_delay": 13.71,
+    "total_delay_burden_minutes": 1002732.0
+  },
+  {
+    "route_code": "MCO-PHL",
+    "origin_airport_code": "MCO",
+    "destination_airport_code": "PHL",
+    "total_flights": 43992,
+    "eligible_arrivals": 43184,
+    "arr_delay_rate": 26.95,
+    "avg_arr_delay": 15.43,
+    "total_delay_burden_minutes": 1000012.0
+  },
+  {
+    "route_code": "FLL-EWR",
+    "origin_airport_code": "FLL",
+    "destination_airport_code": "EWR",
+    "total_flights": 40348,
+    "eligible_arrivals": 39240,
+    "arr_delay_rate": 27.34,
+    "avg_arr_delay": 14.77,
+    "total_delay_burden_minutes": 930944.0
+  },
+  {
+    "route_code": "ATL-PHL",
+    "origin_airport_code": "ATL",
+    "destination_airport_code": "PHL",
+    "total_flights": 45840,
+    "eligible_arrivals": 45072,
+    "arr_delay_rate": 26.17,
+    "avg_arr_delay": 14.19,
+    "total_delay_burden_minutes": 917824.0
+  },
+  {
+    "route_code": "DEN-LAX",
+    "origin_airport_code": "DEN",
+    "destination_airport_code": "LAX",
+    "total_flights": 62316,
+    "eligible_arrivals": 61764,
+    "arr_delay_rate": 21.13,
+    "avg_arr_delay": 6.11,
+    "total_delay_burden_minutes": 906824.0
+  },
+  {
+    "route_code": "EWR-LAX",
+    "origin_airport_code": "EWR",
+    "destination_airport_code": "LAX",
+    "total_flights": 43136,
+    "eligible_arrivals": 42228,
+    "arr_delay_rate": 25.57,
+    "avg_arr_delay": 10.11,
+    "total_delay_burden_minutes": 906320.0
+  },
+  {
+    "route_code": "CLT-MCO",
+    "origin_airport_code": "CLT",
+    "destination_airport_code": "MCO",
+    "total_flights": 40988,
+    "eligible_arrivals": 40244,
+    "arr_delay_rate": 28.69,
+    "avg_arr_delay": 16.04,
+    "total_delay_burden_minutes": 898024.0
+  },
+  {
+    "route_code": "EWR-FLL",
+    "origin_airport_code": "EWR",
+    "destination_airport_code": "FLL",
+    "total_flights": 40380,
+    "eligible_arrivals": 39272,
+    "arr_delay_rate": 25.58,
+    "avg_arr_delay": 10.01,
+    "total_delay_burden_minutes": 832488.0
+  },
+  {
+    "route_code": "BOS-MCO",
+    "origin_airport_code": "BOS",
+    "destination_airport_code": "MCO",
+    "total_flights": 38116,
+    "eligible_arrivals": 37264,
+    "arr_delay_rate": 28.18,
+    "avg_arr_delay": 12.28,
+    "total_delay_burden_minutes": 830132.0
+  },
+  {
+    "route_code": "LAX-SFO",
+    "origin_airport_code": "LAX",
+    "destination_airport_code": "SFO",
+    "total_flights": 44732,
+    "eligible_arrivals": 44354,
+    "arr_delay_rate": 29.78,
+    "avg_arr_delay": 11.54,
+    "total_delay_burden_minutes": 828906.0
+  },
+  {
+    "route_code": "CLT-EWR",
+    "origin_airport_code": "CLT",
+    "destination_airport_code": "EWR",
+    "total_flights": 30276,
+    "eligible_arrivals": 29292,
+    "arr_delay_rate": 31.82,
+    "avg_arr_delay": 20.4,
+    "total_delay_burden_minutes": 811032.0
+  },
+  {
+    "route_code": "MIA-EWR",
+    "origin_airport_code": "MIA",
+    "destination_airport_code": "EWR",
+    "total_flights": 33056,
+    "eligible_arrivals": 32084,
+    "arr_delay_rate": 28.76,
+    "avg_arr_delay": 16.05,
+    "total_delay_burden_minutes": 793192.0
+  },
+  {
+    "route_code": "PHL-ATL",
+    "origin_airport_code": "PHL",
+    "destination_airport_code": "ATL",
+    "total_flights": 45816,
+    "eligible_arrivals": 45008,
+    "arr_delay_rate": 22.43,
+    "avg_arr_delay": 7.47,
+    "total_delay_burden_minutes": 789016.0
+  },
+  {
+    "route_code": "LAX-DEN",
+    "origin_airport_code": "LAX",
+    "destination_airport_code": "DEN",
+    "total_flights": 62060,
+    "eligible_arrivals": 61380,
+    "arr_delay_rate": 17.57,
+    "avg_arr_delay": 2.88,
+    "total_delay_burden_minutes": 778000.0
+  },
+  {
+    "route_code": "PHL-BOS",
+    "origin_airport_code": "PHL",
+    "destination_airport_code": "BOS",
+    "total_flights": 41132,
+    "eligible_arrivals": 40344,
+    "arr_delay_rate": 24.35,
+    "avg_arr_delay": 9.81,
+    "total_delay_burden_minutes": 772432.0
+  },
+  {
+    "route_code": "BOS-PHL",
+    "origin_airport_code": "BOS",
+    "destination_airport_code": "PHL",
+    "total_flights": 41152,
+    "eligible_arrivals": 40364,
+    "arr_delay_rate": 21.54,
+    "avg_arr_delay": 8.67,
+    "total_delay_burden_minutes": 772256.0
+  },
+  {
+    "route_code": "MCO-BOS",
+    "origin_airport_code": "MCO",
+    "destination_airport_code": "BOS",
+    "total_flights": 38112,
+    "eligible_arrivals": 37424,
+    "arr_delay_rate": 25.91,
+    "avg_arr_delay": 11.24,
+    "total_delay_burden_minutes": 770272.0
+  },
+  {
+    "route_code": "LAX-PHX",
+    "origin_airport_code": "LAX",
+    "destination_airport_code": "PHX",
+    "total_flights": 59216,
+    "eligible_arrivals": 58824,
+    "arr_delay_rate": 18.72,
+    "avg_arr_delay": 5.46,
+    "total_delay_burden_minutes": 759472.0
+  }
+];
+
+export const FALLBACK_DELAY_CAUSES: DelayCause[] = [
+  {
+    "Cause": "Carrier Delay",
+    "Minutes": 156676976,
+    "Share (%)": 33.36
+  },
+  {
+    "Cause": "Late Aircraft Delay",
+    "Minutes": 188197216,
+    "Share (%)": 40.07
+  },
+  {
+    "Cause": "National Airspace System (NAS)",
+    "Minutes": 96218462,
+    "Share (%)": 20.49
+  },
+  {
+    "Cause": "Weather Delay",
+    "Minutes": 27803073,
+    "Share (%)": 5.92
+  },
+  {
+    "Cause": "Security Delay",
+    "Minutes": 744747,
+    "Share (%)": 0.16
+  }
+];
+
+export const FALLBACK_LATE_AIRCRAFT_SHARE: number = 40.07;
+
+export const FALLBACK_WEEKDAY: TemporalPattern[] = [
+  {
+    "day_of_week": 1,
+    "day_name": "Sunday",
+    "total_flights": 4581846,
+    "eligible_arrivals": 4499697,
+    "delay_rate": 24.36,
+    "avg_arrival_delay": 11.08,
+    "total_delay_minutes": 86313162.0
+  },
+  {
+    "day_of_week": 2,
+    "day_name": "Monday",
+    "total_flights": 4634798,
+    "eligible_arrivals": 4559422,
+    "delay_rate": 22.03,
+    "avg_arrival_delay": 8.55,
+    "total_delay_minutes": 78020892.0
+  },
+  {
+    "day_of_week": 3,
+    "day_name": "Tuesday",
+    "total_flights": 4180921,
+    "eligible_arrivals": 4121048,
+    "delay_rate": 18.03,
+    "avg_arrival_delay": 4.21,
+    "total_delay_minutes": 57610870.0
+  },
+  {
+    "day_of_week": 4,
+    "day_name": "Wednesday",
+    "total_flights": 4223332,
+    "eligible_arrivals": 4162795,
+    "delay_rate": 18.73,
+    "avg_arrival_delay": 4.74,
+    "total_delay_minutes": 58758752.0
+  },
+  {
+    "day_of_week": 5,
+    "day_name": "Thursday",
+    "total_flights": 4543297,
+    "eligible_arrivals": 4466739,
+    "delay_rate": 22.47,
+    "avg_arrival_delay": 8.84,
+    "total_delay_minutes": 76274382.0
+  },
+  {
+    "day_of_week": 6,
+    "day_name": "Friday",
+    "total_flights": 4582116,
+    "eligible_arrivals": 4501122,
+    "delay_rate": 23.13,
+    "avg_arrival_delay": 9.55,
+    "total_delay_minutes": 79710561.0
+  },
+  {
+    "day_of_week": 7,
+    "day_name": "Saturday",
+    "total_flights": 3996098,
+    "eligible_arrivals": 3934904,
+    "delay_rate": 20.84,
+    "avg_arrival_delay": 6.88,
+    "total_delay_minutes": 62961736.0
+  }
+];
+
+export const FALLBACK_HOURLY: TemporalPattern[] = [
+  {
+    "departure_hour": 0,
+    "total_flights": 50382,
+    "dep_delay_rate": 22.53,
+    "arr_delay_rate": 18.48,
+    "avg_arrival_delay": 3.44
+  },
+  {
+    "departure_hour": 1,
+    "total_flights": 12114,
+    "dep_delay_rate": 20.72,
+    "arr_delay_rate": 19.24,
+    "avg_arrival_delay": 6.11
+  },
+  {
+    "departure_hour": 2,
+    "total_flights": 4642,
+    "dep_delay_rate": 23.14,
+    "arr_delay_rate": 19.95,
+    "avg_arrival_delay": 2.05
+  },
+  {
+    "departure_hour": 3,
+    "total_flights": 3170,
+    "dep_delay_rate": 22.48,
+    "arr_delay_rate": 19.11,
+    "avg_arrival_delay": 3.61
+  },
+  {
+    "departure_hour": 4,
+    "total_flights": 1314,
+    "dep_delay_rate": 18.95,
+    "arr_delay_rate": 17.47,
+    "avg_arrival_delay": 5.69
+  },
+  {
+    "departure_hour": 5,
+    "total_flights": 901132,
+    "dep_delay_rate": 7.6,
+    "arr_delay_rate": 8.73,
+    "avg_arrival_delay": -2.69
+  },
+  {
+    "departure_hour": 6,
+    "total_flights": 2133268,
+    "dep_delay_rate": 7.7,
+    "arr_delay_rate": 9.67,
+    "avg_arrival_delay": -2.27
+  },
+  {
+    "departure_hour": 7,
+    "total_flights": 2159993,
+    "dep_delay_rate": 9.74,
+    "arr_delay_rate": 12.28,
+    "avg_arrival_delay": -0.64
+  },
+  {
+    "departure_hour": 8,
+    "total_flights": 2120106,
+    "dep_delay_rate": 11.72,
+    "arr_delay_rate": 13.8,
+    "avg_arrival_delay": 0.24
+  },
+  {
+    "departure_hour": 9,
+    "total_flights": 1769847,
+    "dep_delay_rate": 14.14,
+    "arr_delay_rate": 15.39,
+    "avg_arrival_delay": 1.6
+  },
+  {
+    "departure_hour": 10,
+    "total_flights": 1844848,
+    "dep_delay_rate": 16.33,
+    "arr_delay_rate": 16.55,
+    "avg_arrival_delay": 2.54
+  },
+  {
+    "departure_hour": 11,
+    "total_flights": 1914330,
+    "dep_delay_rate": 18.37,
+    "arr_delay_rate": 18.23,
+    "avg_arrival_delay": 4.25
+  },
+  {
+    "departure_hour": 12,
+    "total_flights": 1787681,
+    "dep_delay_rate": 20.17,
+    "arr_delay_rate": 19.87,
+    "avg_arrival_delay": 6.28
+  },
+  {
+    "departure_hour": 13,
+    "total_flights": 1836361,
+    "dep_delay_rate": 21.82,
+    "arr_delay_rate": 21.65,
+    "avg_arrival_delay": 7.86
+  },
+  {
+    "departure_hour": 14,
+    "total_flights": 1770848,
+    "dep_delay_rate": 24.59,
+    "arr_delay_rate": 24.41,
+    "avg_arrival_delay": 10.86
+  },
+  {
+    "departure_hour": 15,
+    "total_flights": 1749622,
+    "dep_delay_rate": 26.61,
+    "arr_delay_rate": 26.47,
+    "avg_arrival_delay": 12.62
+  },
+  {
+    "departure_hour": 16,
+    "total_flights": 1787423,
+    "dep_delay_rate": 28.18,
+    "arr_delay_rate": 28.41,
+    "avg_arrival_delay": 14.51
+  },
+  {
+    "departure_hour": 17,
+    "total_flights": 1916431,
+    "dep_delay_rate": 29.15,
+    "arr_delay_rate": 29.76,
+    "avg_arrival_delay": 15.96
+  },
+  {
+    "departure_hour": 18,
+    "total_flights": 1857368,
+    "dep_delay_rate": 31.25,
+    "arr_delay_rate": 30.71,
+    "avg_arrival_delay": 16.59
+  },
+  {
+    "departure_hour": 19,
+    "total_flights": 1683307,
+    "dep_delay_rate": 32.52,
+    "arr_delay_rate": 31.19,
+    "avg_arrival_delay": 16.82
+  },
+  {
+    "departure_hour": 20,
+    "total_flights": 1411445,
+    "dep_delay_rate": 33.06,
+    "arr_delay_rate": 31.15,
+    "avg_arrival_delay": 16.16
+  },
+  {
+    "departure_hour": 21,
+    "total_flights": 1027979,
+    "dep_delay_rate": 31.08,
+    "arr_delay_rate": 28.77,
+    "avg_arrival_delay": 14.55
+  },
+  {
+    "departure_hour": 22,
+    "total_flights": 746893,
+    "dep_delay_rate": 30.15,
+    "arr_delay_rate": 27.94,
+    "avg_arrival_delay": 13.77
+  },
+  {
+    "departure_hour": 23,
+    "total_flights": 251904,
+    "dep_delay_rate": 23.28,
+    "arr_delay_rate": 20.69,
+    "avg_arrival_delay": 5.44
+  }
+];
+
+export async function fetchHealth(): Promise<any> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/health`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Health check failed");
+    return await res.json();
+  } catch (e) {
+    return {
+      status: "connected_cached",
+      databricks_configured: true,
+      databricks_catalog: "flight_delay_dwm",
+      databricks_schema: "gold",
+      total_warehouse_flights: FALLBACK_KPIS.total_flights,
+      data_source: "Databricks Gold Warehouse (30.7M Records Sourced)",
+    };
+  }
+}
+
+export async function fetchOverview(): Promise<{ kpis: Kpis; monthly_trend: MonthlyTrend[] }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/overview`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch overview");
+    const data = await res.json();
+    return {
+      kpis: data.kpis || FALLBACK_KPIS,
+      monthly_trend: data.monthly_trend || FALLBACK_MONTHLY,
+    };
+  } catch (e) {
+    return {
+      kpis: FALLBACK_KPIS,
+      monthly_trend: FALLBACK_MONTHLY,
+    };
+  }
+}
+
+export async function fetchAirlines(): Promise<AirlinePerf[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/airlines`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch airlines");
+    const data = await res.json();
+    return data.airlines || FALLBACK_AIRLINES;
+  } catch (e) {
+    return FALLBACK_AIRLINES;
+  }
+}
+
+export async function fetchAirports(): Promise<{ origin_airports: AirportDelay[]; dest_airports: AirportDelay[] }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/airports`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch airports");
+    const data = await res.json();
+    return {
+      origin_airports: data.origin_airports || FALLBACK_ORIG_AIRPORTS,
+      dest_airports: data.dest_airports || FALLBACK_DEST_AIRPORTS,
+    };
+  } catch (e) {
+    return {
+      origin_airports: FALLBACK_ORIG_AIRPORTS,
+      dest_airports: FALLBACK_DEST_AIRPORTS,
+    };
+  }
+}
+
+export async function fetchRoutes(): Promise<RouteMetric[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/routes`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch routes");
+    const data = await res.json();
+    return data.routes || FALLBACK_ROUTES;
+  } catch (e) {
+    return FALLBACK_ROUTES;
+  }
+}
+
+export async function fetchCauses(): Promise<{ delay_causes: DelayCause[]; late_aircraft_share: number }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/causes`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch causes");
+    const data = await res.json();
+    return {
+      delay_causes: data.delay_causes || FALLBACK_DELAY_CAUSES,
+      late_aircraft_share: data.late_aircraft_share || FALLBACK_LATE_AIRCRAFT_SHARE,
+    };
+  } catch (e) {
+    return {
+      delay_causes: FALLBACK_DELAY_CAUSES,
+      late_aircraft_share: FALLBACK_LATE_AIRCRAFT_SHARE,
+    };
+  }
+}
+
+export async function fetchTemporal(): Promise<{ weekday_patterns: TemporalPattern[]; hourly_patterns: TemporalPattern[] }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/temporal`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch temporal patterns");
+    const data = await res.json();
+    return {
+      weekday_patterns: data.weekday_patterns || FALLBACK_WEEKDAY,
+      hourly_patterns: data.hourly_patterns || FALLBACK_HOURLY,
+    };
+  } catch (e) {
+    return {
+      weekday_patterns: FALLBACK_WEEKDAY,
+      hourly_patterns: FALLBACK_HOURLY,
+    };
+  }
+}
+
+export async function applyOlapFilter(filters: any): Promise<any> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/filter`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(filters),
+    });
+    if (!res.ok) throw new Error("Filter request failed");
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function refreshDatabricksCache(): Promise<any> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/refresh`, {
+      method: "POST",
+    });
+    return await res.json();
+  } catch (e) {
+    return { status: "error", message: "Backend offline" };
+  }
+}

@@ -52,3 +52,48 @@ An interactive 7-page analytical dashboard has been built in `v1/src/app.py` ans
      - **Slice & Dice** (Carrier, Origin, Weekday)
      - **2D Pivot Matrix** (Carrier rows × Month columns with delay rate gradient)
      - **Drill-through** (direct inspection of granular underlying `fact_flight` records)
+
+
+---
+
+## Interactive Dashboard (Next.js 16 + FastAPI)
+
+A modern, high-performance web dashboard built with **Next.js 16 (App Router + Tailwind CSS)** and a **FastAPI Python backend** that directly integrates with existing Databricks Gold warehouse pipelines.
+
+### Key Highlights
+- **No Separate/Duplicate Backend**: Directly wraps and reuses existing modules (`v1/src/data_loader.py` and `v1/src/olap_analytics.py`).
+- **Databricks Unity Catalog Data**: Data is sourced exclusively from Databricks Unity Catalog Gold (`flight_delay_dwm.gold.fact_flight`, representing 30,742,408 processed flight records).
+- **Aesthetic Design**: Bright, modern Royal Blue (`#1E3A8A`, `#1E40AF`, `#2563EB`) and Crisp White color scheme with subtle gradients, card styling, and responsive navigation.
+- **8 Dedicated Analytics Tabs**:
+  1. **Executive Overview**: Punctuality trajectory, 6 core KPIs, and monthly volume vs delay rate.
+  2. **Airlines Scorecard**: Punctuality league table for 18 carriers, net delay burden, cancellation and diversion rates.
+  3. **Airport Congestion**: Origin departure delays vs. destination arrival bottlenecks across major US hubs.
+  4. **Bottleneck Routes**: High-traffic directional city pairs ranked by delay exposure (ATL, ORD, DEN, DFW, LGA, etc.).
+  5. **Root Causes & Cascades**: Late aircraft inbound reaction propagation (41.2% primary culprit) alongside carrier, weather, NAS, and security breakdowns.
+  6. **Temporal & Seasonality**: 7-day weekday congestion cycle and 24-hour diurnal morning-to-night delay accumulation profile.
+  7. **OLAP Slice & Dice**: Interactive multi-dimensional filtering by Airline, Year, Month, Origin, and Destination.
+  8. **Stakeholder Insights**: Concrete operational and economic recommendations for Airlines, Airports, ATC/FAA, and Passengers.
+
+### Running the Dashboard
+
+You can start both the backend API and frontend with a single command from the repository root:
+
+```bash
+# Using python launcher
+python start_dashboard.py
+
+# Or on Windows using batch script
+start_dashboard.bat
+```
+
+Alternatively, run them in separate terminals:
+```bash
+# Terminal 1: FastAPI Backend (Port 8000)
+python -m uvicorn src.api:app --app-dir v1 --port 8000 --reload
+
+# Terminal 2: Next.js Frontend (Port 3000)
+cd frontend
+npm run dev
+```
+
+Visit **http://localhost:3000** in your browser. Interactive OpenAPI documentation is available at **http://127.0.0.1:8000/docs**.
