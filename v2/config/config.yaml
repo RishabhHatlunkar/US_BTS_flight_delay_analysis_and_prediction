@@ -1,0 +1,43 @@
+# ==============================================================================
+# Flight Delay Analytics and Prediction - V2 Local SQLite Pipeline Configuration
+# ==============================================================================
+
+database:
+  path: "data/warehouse/flight_delay.db"
+  busy_timeout_ms: 60000
+  journal_mode: "WAL"
+  synchronous: "NORMAL"
+  foreign_keys: true
+
+raw_data:
+  dir: "data/raw/bts"
+  file_pattern: "bts_flights_{year}.csv"
+  years:
+    - 2024
+    - 2025
+  chunk_size: 50000
+  max_rows_per_file: null
+
+tables:
+  bronze: "bronze_bts_flights"
+  bronze_manifest: "bronze_manifest"
+  silver: "silver_flights"
+  silver_rejected: "silver_rejected_rows"
+  gold_dim_date: "gold_dim_date"
+  gold_dim_airline: "gold_dim_airline"
+  gold_dim_airport: "gold_dim_airport"
+  gold_dim_route: "gold_dim_route"
+  gold_fact_flight: "gold_fact_flight"
+  audit_log: "etl_run_log"
+
+reports:
+  output_dir: "v2/reports"
+  bronze_report: "v2/reports/bronze_report.json"
+  silver_quality_report: "v2/reports/silver_quality_report.json"
+  gold_validation_report: "v2/reports/gold_validation_report.json"
+  pipeline_summary: "v2/reports/pipeline_summary.json"
+
+logging:
+  log_file: "logs/v2_etl.log"
+  log_level: "INFO"
+  console_output: true

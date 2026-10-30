@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-10-14T15:23:00.881976+00:00",
+  "total_files": 2,
+  "files": [
+    {
+      "filename": "bts_flights_2024.csv",
+      "status": "SUCCESS",
+      "rows_read": 25000,
+      "rows_inserted": 25000,
+      "rejected_rows": 0,
+      "duration_seconds": 7.86
+    },
+    {
+      "filename": "bts_flights_2025.csv",
+      "status": "SUCCESS",
+      "rows_read": 25000,
+      "rows_inserted": 25000,
+      "rejected_rows": 0,
+      "duration_seconds": 2.43
+    }
+  ],
+  "total_inserted": 50000,
+  "total_read": 50000,
+  "total_rejected": 0,
+  "overall_status": "SUCCESS",
+  "duration_seconds": 29.09
+}

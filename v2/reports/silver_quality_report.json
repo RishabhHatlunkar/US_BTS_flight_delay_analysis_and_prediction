@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-10-14T15:23:54.088579+00:00",
+  "input_bronze_rows": 50000,
+  "output_silver_rows": 50000,
+  "rejected_rows": 0,
+  "metrics": {
+    "cancellation_count": 1696,
+    "diversion_count": 138,
+    "null_arrival_delay_outcome_count": 1834,
+    "invalid_time_format_count": 0
+  },
+  "duration_seconds": 22.53,
+  "status": "SUCCESS"
+}

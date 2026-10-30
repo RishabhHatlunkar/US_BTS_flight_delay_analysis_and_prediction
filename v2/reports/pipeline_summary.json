@@ -1,0 +1,110 @@
+{
+  "pipeline_version": "v2_sqlite",
+  "started_at": "2026-10-14T15:23:00.878969+00:00",
+  "database_path": "W:\\College\\Sem 5\\DWM\\US_BTS_flight_delay_analysis_and_prediction\\data\\warehouse\\flight_delay.db",
+  "stages": {
+    "bronze": {
+      "timestamp": "2026-10-14T15:23:00.881976+00:00",
+      "total_files": 2,
+      "files": [
+        {
+          "filename": "bts_flights_2024.csv",
+          "status": "SUCCESS",
+          "rows_read": 25000,
+          "rows_inserted": 25000,
+          "rejected_rows": 0,
+          "duration_seconds": 7.86
+        },
+        {
+          "filename": "bts_flights_2025.csv",
+          "status": "SUCCESS",
+          "rows_read": 25000,
+          "rows_inserted": 25000,
+          "rejected_rows": 0,
+          "duration_seconds": 2.43
+        }
+      ],
+      "total_inserted": 50000,
+      "total_read": 50000,
+      "total_rejected": 0,
+      "overall_status": "SUCCESS",
+      "duration_seconds": 29.09
+    },
+    "silver": {
+      "timestamp": "2026-10-14T15:23:54.088579+00:00",
+      "input_bronze_rows": 50000,
+      "output_silver_rows": 50000,
+      "rejected_rows": 0,
+      "metrics": {
+        "cancellation_count": 1696,
+        "diversion_count": 138,
+        "null_arrival_delay_outcome_count": 1834,
+        "invalid_time_format_count": 0
+      },
+      "duration_seconds": 22.53,
+      "status": "SUCCESS"
+    },
+    "gold_dimensions": {
+      "gold_dim_date": 62,
+      "gold_dim_airline": 2,
+      "gold_dim_airport": 165,
+      "gold_dim_route": 1019
+    },
+    "gold_facts": {
+      "inserted_rows": 50000,
+      "total_rows": 50000,
+      "duration_seconds": 5.26,
+      "status": "SUCCESS"
+    },
+    "validation": {
+      "timestamp": "2026-10-14T15:24:00.177316+00:00",
+      "is_valid": true,
+      "table_row_counts": {
+        "gold_dim_date": 62,
+        "gold_dim_airline": 2,
+        "gold_dim_airport": 165,
+        "gold_dim_route": 1019,
+        "gold_fact_flight": 50000,
+        "silver_flights": 50000,
+        "bronze_bts_flights": 50000
+      },
+      "foreign_key_integrity": {
+        "unresolved_date_keys": 0,
+        "unresolved_airline_keys": 0,
+        "unresolved_origin_airport_keys": 0,
+        "unresolved_dest_airport_keys": 0,
+        "unresolved_route_keys": 0
+      },
+      "total_unresolved_foreign_keys": 0,
+      "duplicate_fact_grain_count": 0,
+      "flight_measures_summary": {
+        "total_flights": 50000,
+        "cancelled_flights": 1696,
+        "diverted_flights": 138,
+        "delayed_flights": 10485,
+        "ontime_flights": 37681,
+        "unknown_delay_flights": 1834
+      },
+      "duration_seconds": 0.11,
+      "status": "PASSED"
+    },
+    "analytics": {
+      "total_queries_run": 10,
+      "queries": [
+        "01_monthly_delay_summary.sql",
+        "02_airline_delay_rate.sql",
+        "03_airport_delay_performance.sql",
+        "04_top_routes_by_delay.sql",
+        "05_cancellation_and_diversion_rates.sql",
+        "06_delay_cause_breakdown.sql",
+        "07_flights_by_day_and_hour.sql",
+        "08_rollup_drilldown.sql",
+        "09_slice_dice.sql",
+        "10_null_handling_validation.sql"
+      ]
+    }
+  },
+  "overall_status": "SUCCESS",
+  "completed_at": "2026-10-14T15:24:00.988522+00:00",
+  "duration_seconds": 60.11
+}

@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-10-14T15:24:00.177316+00:00",
+  "is_valid": true,
+  "table_row_counts": {
+    "gold_dim_date": 62,
+    "gold_dim_airline": 2,
+    "gold_dim_airport": 165,
+    "gold_dim_route": 1019,
+    "gold_fact_flight": 50000,
+    "silver_flights": 50000,
+    "bronze_bts_flights": 50000
+  },
+  "foreign_key_integrity": {
+    "unresolved_date_keys": 0,
+    "unresolved_airline_keys": 0,
+    "unresolved_origin_airport_keys": 0,
+    "unresolved_dest_airport_keys": 0,
+    "unresolved_route_keys": 0
+  },
+  "total_unresolved_foreign_keys": 0,
+  "duplicate_fact_grain_count": 0,
+  "flight_measures_summary": {
+    "total_flights": 50000,
+    "cancelled_flights": 1696,
+    "diverted_flights": 138,
+    "delayed_flights": 10485,
+    "ontime_flights": 37681,
+    "unknown_delay_flights": 1834
+  },
+  "duration_seconds": 0.11,
+  "status": "PASSED"
+}

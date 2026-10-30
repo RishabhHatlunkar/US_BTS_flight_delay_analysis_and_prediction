@@ -1,0 +1,44 @@
+# ==============================================================================
+# Flight Delay Analytics and Prediction - V2 Local SQLite Pipeline Configuration
+# Medallion Architecture: Bronze (Raw) -> Silver (Clean) -> Gold (Star Schema)
+# ==============================================================================
+
+v2:
+  database:
+    path: "data/warehouse/flight_delay.db"
+    busy_timeout_ms: 60000
+    journal_mode: "WAL"
+    synchronous: "NORMAL"
+    foreign_keys: true
+
+  raw_data:
+    dir: "data/raw/bts"
+    file_pattern: "bts_flights_{year}.csv"
+    years:
+      - 2024
+      - 2025
+    chunk_size: 50000
+    max_rows_per_file: null  # Set to integer (e.g. 50000) for testing/sampling
+
+  tables:
+    bronze: "bronze_bts_flights"
+    silver: "silver_flights"
+    silver_rejected: "silver_rejected_rows"
+    gold_dim_date: "gold_dim_date"
+    gold_dim_airline: "gold_dim_airline"
+    gold_dim_airport: "gold_dim_airport"
+    gold_dim_route: "gold_dim_route"
+    gold_fact_flight: "gold_fact_flight"
+    audit_log: "etl_run_log"
+
+  reports:
+    output_dir: "reports/v2"
+    bronze_report: "reports/v2/bronze_report.json"
+    silver_quality_report: "reports/v2/silver_quality_report.json"
+    gold_validation_report: "reports/v2/gold_validation_report.json"
+    pipeline_summary: "reports/v2/pipeline_summary.json"
+
+  logging:
+    log_file: "logs/v2_etl.log"
+    log_level: "INFO"
+    console_output: true
